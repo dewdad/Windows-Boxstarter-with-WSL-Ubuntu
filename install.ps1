@@ -29,7 +29,7 @@
 Write-Host @'
  =============================
 < Windows Subsystem for Linux >
-< (Ubuntu >= 16.04) installer >
+< (Ubuntu >= 18.04) installer >
  =============================
    \
     \
@@ -43,12 +43,12 @@ Write-Host @'
 '@
 
 if ([Environment]::OSVersion.Version.Major -ne 10) {
-  Write-Error 'Upgrade to Windows 10 before running this script'
-  Exit
+    Write-Error 'Upgrade to Windows 10 before running this script'
+    Exit
 }
 
 if (('Unrestricted', 'RemoteSigned') -notcontains (Get-ExecutionPolicy)) {
-  Write-Error @'
+    Write-Error @'
 The execution policy on your machine is Restricted, but it must be opened up for this
 installer with:
 
@@ -57,12 +57,12 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
 }
 
 if (!(Get-Command 'boxstarter' -ErrorAction SilentlyContinue)) {
-  Write-Error @'
+    Write-Error @'
 You need Boxstarter to run this script; install with:
 
 . { iwr -useb http://boxstarter.org/bootstrapper.ps1 } | iex; get-boxstarter -Force; refreshenv
 '@
-  Exit
+    Exit
 }
 
 #--- Windows Update ---
@@ -72,8 +72,8 @@ Install-WindowsUpdate -AcceptEula
 
 
 if ((Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId -lt 1803) {
-  Write-Error 'You need to run Windows Update and install Feature Updates to at least version 1803'
-  Exit
+    Write-Error 'You need to run Windows Update and install Feature Updates to at least version 1803'
+    Exit
 }
 
 #--- Termporarily disable ---
@@ -91,34 +91,36 @@ choco install Microsoft-Windows-Subsystem-Linux -source WindowsFeatures -y
 lxrun /install /y
 
 #--- Tools ---
-choco install sysinternals -y
-choco install autohotkey -y
+choco upgrade sysinternals -y
+#choco install autohotkey -y
 
 #--- X server ---
-choco install cyg-get -y # install cygwin
+<# choco install cyg-get -y # install cygwin
 refreshenv
-cyg-get xorg-server xinit # install cygwin/x
+cyg-get xorg-server xinit # install cygwin/x #>
 
 #--- Apps ---
-choco install googlechrome -y
-choco install firefox -y
-choco install docker-for-windows -y
-choco install cmder -y
-choco install putty -y # installing because we want the pageant ssh agent4
-choco install puretext -y # paste as plain text with Win + V
+choco upgrade googlechrome -y
+choco upgrade firefox -y
+choco upgrade docker-desktop -y
+choco upgrade cmdermini -y
+choco upgrade tortoisegit -y
+choco upgrade 7zip -y
+# choco install putty -y # installing because we want the pageant ssh agent4
+# choco install puretext -y # paste as plain text with Win + V
 
 #--- Visual Studio Code
-choco install visualstudiocode -y
-refreshenv
-code --install-extension EditorConfig.EditorConfig
-code --install-extension vscodevim.vim
-code --install-extension eamodio.gitlens
-code --install-extension gerane.Theme-Paraisodark
-code --install-extension PeterJausovec.vscode-docker
-code --install-extension ms-vscode.PowerShell
-code --install-extension christian-kohler.path-intellisense
-code --install-extension robertohuertasm.vscode-icons
-code --install-extension streetsidesoftware.code-spell-checker
+# choco install visualstudiocode -y
+# refreshenv
+# code --install-extension EditorConfig.EditorConfig
+# code --install-extension vscodevim.vim
+# code --install-extension eamodio.gitlens
+# code --install-extension gerane.Theme-Paraisodark
+# code --install-extension PeterJausovec.vscode-docker
+# code --install-extension ms-vscode.PowerShell
+# code --install-extension christian-kohler.path-intellisense
+# code --install-extension robertohuertasm.vscode-icons
+# code --install-extension streetsidesoftware.code-spell-checker
 ### change lang to GB in config with "cSpell.language": "en-GB"
 ### uncomment to install
 ### node
@@ -129,7 +131,7 @@ code --install-extension streetsidesoftware.code-spell-checker
 
 
 #--- Git ---
-choco install git -y --params "/GitAndUnixToolsOnPath"
+choco upgrade git -y --params '/GitAndUnixToolsOnPath /NoGitLfs /SChannel /NoAutoCrlf'
 refreshenv
 
 git config --global set core.symlinks true
@@ -142,13 +144,15 @@ git config --global set color.interactive auto
 git config --global set color.ui true
 git config --global set color.pager true
 git config --global set color.showbranch auto
+git config --global set pull.rebase true
+git config --global set rebase.autoStash true
 
 #--- Decent bash/WSL terminal - wsltty
-choco install -y wsltty
+choco upgrade wsltty -y
 
 # Finish wsltty setup by setting up shortcuts
 $wsl_gen_short = 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\WSL Generate Shortcuts.lnk'
-if(Test-Path $wsl_gen_short) {
+if (Test-Path $wsl_gen_short) {
     Invoke-Item $wsl_gen_short
 }
 
@@ -157,7 +161,7 @@ Copy-Item '.\config_files\wsltty\paraiso_dark.mintty' -Destination "$env:APPDATA
 Copy-Item '.\config_files\wsltty\config' -Destination "$env:APPDATA\wsltty\config"
 
 # Setup weasel-pageant
-$url = 'https://github.com/vuori/weasel-pageant/releases/download/v1.1/weasel-pageant-1.1.zip'
+<# $url = 'https://github.com/vuori/weasel-pageant/releases/download/v1.1/weasel-pageant-1.1.zip'
 $archive = 'C:\tools\weasel-pageant-1-1.zip'
 if(!(Test-Path $archive)) {
     Write-Host "[installer.weasel-pageant] Downloading..."
@@ -172,7 +176,7 @@ if(!(Test-Path $archive)) {
     } else {
         Write-Error "[installer.weasel-pageant] Download failed"
     }
-}
+} #>
 
 #--- Uninstall unecessary applications that come with Windows out of the box ---
 
@@ -228,15 +232,15 @@ Get-AppxPackage Microsoft.WindowsMaps | Remove-AppxPackage
 Get-AppxPackage *MarchofEmpires* | Remove-AppxPackage
 
 # McAfee Security
-Get-AppxPackage *McAfee* | Remove-AppxPackage
+# Get-AppxPackage *McAfee* | Remove-AppxPackage
 
 # Uninstall McAfee Security App
-$mcafee = gci "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" | foreach { gp $_.PSPath } | ? { $_ -match "McAfee Security" } | select UninstallString
+<# $mcafee = gci "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" | foreach { gp $_.PSPath } | ? { $_ -match "McAfee Security" } | select UninstallString
 if ($mcafee) {
 	$mcafee = $mcafee.UninstallString -Replace "C:\Program Files\McAfee\MSC\mcuihost.exe",""
 	Write "Uninstalling McAfee..."
 	start-process "C:\Program Files\McAfee\MSC\mcuihost.exe" -arg "$mcafee" -Wait
-}
+} #>
 
 # Messaging
 Get-AppxPackage Microsoft.Messaging | Remove-AppxPackage
@@ -263,13 +267,13 @@ Get-AppxPackage Microsoft.People | Remove-AppxPackage
 Get-AppxPackage Microsoft.WindowsPhone | Remove-AppxPackage
 
 # Photos
-Get-AppxPackage Microsoft.Windows.Photos | Remove-AppxPackage
+# Get-AppxPackage Microsoft.Windows.Photos | Remove-AppxPackage
 
 # Plex
 Get-AppxPackage *Plex* | Remove-AppxPackage
 
 # Skype (Metro version)
-Get-AppxPackage Microsoft.SkypeApp | Remove-AppxPackage
+# Get-AppxPackage Microsoft.SkypeApp | Remove-AppxPackage
 
 # Sound Recorder
 Get-AppxPackage Microsoft.WindowsSoundRecorder | Remove-AppxPackage
@@ -325,18 +329,18 @@ Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer 
 # Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -Type DWord -Value 1
 
 # Disable the Lock Screen (the one before password prompt - to prevent dropping the first character)
-If (-Not (Test-Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization)) {
+<# If (-Not (Test-Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization)) {
 	New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows -Name Personalization | Out-Null
 }
-Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization -Name NoLockScreen -Type DWord -Value 1
+Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization -Name NoLockScreen -Type DWord -Value 1 #>
 # To Restore:
 # Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization -Name NoLockScreen -Type DWord -Value 1
 
 # Use the Windows 7-8.1 Style Volume Mixer
-If (-Not (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MTCUVC")) {
+<# If (-Not (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MTCUVC")) {
 	New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name MTCUVC | Out-Null
 }
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MTCUVC" -Name EnableMtcUvc -Type DWord -Value 0
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MTCUVC" -Name EnableMtcUvc -Type DWord -Value 0 #>
 # To Restore (Windows 10 Style Volume Control):
 # Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\MTCUVC" -Name EnableMtcUvc -Type DWord -Value 1
 
@@ -359,21 +363,22 @@ Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Enum\HID\*\*\Device` Parameters 
 $hfile = "$env:windir\System32\drivers\etc\hosts"
 
 function Block-Ad {
-  Param ($domain)
-  if (!(Select-String -Path "$hfile" -Pattern "$domain" -SimpleMatch -Quiet)) {
-    # Doesn't already exist so lets add it
-    $out = ''
-    if ($domain -like '* *') {
-      # add as-is because it's a ip and domain pair
-      $out = $domain
-    } else {
-      # route to 0.0.0.0
-      $out = "0.0.0.0    $domain"
+    Param ($domain)
+    if (!(Select-String -Path "$hfile" -Pattern "$domain" -SimpleMatch -Quiet)) {
+        # Doesn't already exist so lets add it
+        $out = ''
+        if ($domain -like '* *') {
+            # add as-is because it's a ip and domain pair
+            $out = $domain
+        }
+        else {
+            # route to 0.0.0.0
+            $out = "0.0.0.0    $domain"
+        }
+        "$out" | Add-Content -PassThru "$hfile"
+        Return 0
     }
-    "$out" | Add-Content -PassThru "$hfile"
-    Return 0
-  }
-  Return -1
+    Return -1
 }
 
 Block-Ad 'pubads.g.doubleclick.net'
@@ -391,25 +396,25 @@ Enable-MicrosoftUpdate
 Install-WindowsUpdate -AcceptEula
 
 if (!(Get-Command 'wsl' -ErrorAction SilentlyContinue)) {
-  Write-Error @'
+    Write-Error @'
 You need Windows Subsystem for Linux setup before the rest of this script can run.
 
 See https://docs.microsoft.com/en-us/windows/wsl/install-win10 for more information.
 '@
-  Exit
+    Exit
 }
 
 if ((wsl awk '/^ID=/' /etc/*-release | wsl awk -F'=' '{ print tolower(\$2) }') -ne 'ubuntu') {
-  Write-Error 'Ensure Windows Subsystem for Linux is setup to run the Ubuntu distribution'
-  Exit
+    Write-Error 'Ensure Windows Subsystem for Linux is setup to run the Ubuntu distribution'
+    Exit
 }
 
-if ((wsl awk '/^DISTRIB_RELEASE=/' /etc/*-release | wsl awk -F'=' '{ print tolower(\$2) }') -lt 16.04) {
-  Write-Error 'You need to install a minimum of Ubuntu 16.04 Xenial Xerus before running this script'
-  Exit
+if ((wsl awk '/^DISTRIB_RELEASE=/' /etc/*-release | wsl awk -F'=' '{ print tolower(\$2) }') -lt 18.04) {
+    Write-Error 'You need to install a minimum of Ubuntu 16.04 Xenial Xerus before running this script'
+    Exit
 }
 $windows_bash_script_path = [regex]::Escape($PSScriptRoot) + '\\install.sh'
-$linux_bash_script_path=(wsl wslpath -a "$windows_bash_script_path")
+$linux_bash_script_path = (wsl wslpath -a "$windows_bash_script_path")
 wsl cp "$linux_bash_script_path" "/tmp/"
 
 wsl bash -c "/tmp/install.sh"
